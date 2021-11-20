@@ -319,6 +319,8 @@
 -r:"Library/Bee/artifacts/1900b0aEDbg.dag/UnityEditor.UI.ref.dll"
 -r:"Library/Bee/artifacts/1900b0aEDbg.dag/UnityEngine.UI.ref.dll"
 -r:"Library/Bee/artifacts/1900b0aEDbg.dag/VSSettingsProvider.ref.dll"
+"Assets/Scripts/ColorGenerator.cs"
+"Assets/Scripts/PlaneGeneratorDELME.cs"
 "Assets/Scripts/TerrainGenerator.cs"
 -langversion:8.0
 
