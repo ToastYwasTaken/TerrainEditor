@@ -11,7 +11,8 @@ using UnityEngine;
 * or duplicated in any form, in whole or in part, without the prior
 * written consent of the author.
 *
-* --Changelog:
+* ChangeLog
+* ----------------------------:
 *	20.11.21	FM	created
 *	21.11.21    FM  added comments
 ******************************************************************************/
@@ -43,25 +44,25 @@ public class ColorGenerator : MonoBehaviour
                 if (terrainGenerator.AllNoise[j, i] <= waterLevel)
                 {
                     //Set water
-                    //Debug.Log("Setting color blue");
+                    Debug.Log("Setting color blue");
                     colormap[i * _height + j] = Color.blue;
                 }
                 else if (terrainGenerator.AllNoise[j, i] <= grassLevel)
                 {
                     //Set grass
-                    //Debug.Log("Setting color green");
+                    Debug.Log("Setting color green");
                     colormap[i * _height + j] = Color.green;
                 }
                 else if (terrainGenerator.AllNoise[j, i] <= mountainLevel)
                 {
                     //Set mountain
-                    //Debug.Log("Setting color gray");
+                    Debug.Log("Setting color gray");
                     colormap[i * _height + j] = Color.grey;
                 }
                 else
                 {
                     //Set mountainTop
-                    //Debug.Log("Setting color white");
+                    Debug.Log("Setting color white");
                     colormap[i * _height + j] = Color.white;
                 }
                 //Debug.Log($"Terrain Noise: {terrainGenerator.AllNoise[j, i]}");

@@ -13,8 +13,10 @@ using UnityEngine;
 * or duplicated in any form, in whole or in part, without the prior
 * written consent of the author.
 *
-* --Changelog:
-*	20.11.21	FM	created
+* ChangeLog
+* ----------------------------
+*	20.11.21	created
+*	23.11.21    added comments
 ******************************************************************************/
 
 [ExecuteInEditMode]
@@ -25,7 +27,7 @@ public class TerrainGenerator : MonoBehaviour
     [SerializeField]
     private int levelOfDetail;
     [SerializeField]
-    private Material planeMaterial;
+    private Material meshMaterial;
     [SerializeField]
     private bool activatePerlinNoise;
     [SerializeField]
@@ -34,6 +36,8 @@ public class TerrainGenerator : MonoBehaviour
     [SerializeField]
     [Range(1f, 5f)]
     private float perlinMultiplier;
+    [SerializeField]
+    private GameObject planeForTextureDebug;
 
     [SerializeField]
     ColorGenerator colorGenerator;
@@ -42,6 +46,8 @@ public class TerrainGenerator : MonoBehaviour
     private Vector3[] vertices;
     private int[] indices;
     private float[,] allNoise;
+    private Vector2[] uvMap;
+
     private float perlinNoise;
 
     private Mesh mesh;
@@ -54,26 +60,26 @@ public class TerrainGenerator : MonoBehaviour
     private void Awake()
     {
         mesh = new Mesh();
-        meshFilter = GetComponent<MeshFilter>();
-        meshFilter.sharedMesh = mesh;
+        meshFilter = GetComponent<MeshFilter  >();
         rend = GetComponent<MeshRenderer>();
-        rend.material = planeMaterial;
     }
     // Start is called before the first frame update
     void Start()
     {
         AssignMesh();
         AssignColor();
+        DrawDebugPlaneTexture();
         UpdateMesh();
     }
 
     private void Update()
     {
         AssignMesh();
+        AssignColor();
         UpdateMesh();
     }
 
-    public IEnumerator CreateMesh()
+    public IEnumerator CreateMeshProcedural()
     {
         vertices = new Vector3[(width + 1) * (height + 1)]; //9
         int index = 0;
@@ -112,14 +118,20 @@ public class TerrainGenerator : MonoBehaviour
         Debug.Log($"Vertices: {vertices.Length} | Triangles: {indices.Length}");
     }
 
+    /// <summary>
+    /// Creates a new mesh by assigning vertices, creating triangles and then a mesh
+    /// Also uses noise for y coordinates
+    /// </summary>
     private void AssignMesh()
     {
+
         //BSP: width = 2, height = 2 -> 4 vertices -> 2 Triangles -> 6 indices
         vertices = new Vector3[width * height];
         AllNoise = new float[width, height];
         int index = 0;
         int offset = 0;
         int vertex = 0;
+        Quaternion rotationOffset = Quaternion.Euler(0, 90, 0);
         indices = new int[(width - 1) * (height - 1) * 6];
         //Calculate vertices
         for (int i = 0; i < height; i++)
@@ -131,17 +143,17 @@ public class TerrainGenerator : MonoBehaviour
                     perlinNoise = SetPerlinNoise(j, i);
                     AllNoise[j, i] = perlinNoise;
                 }
-                vertices[index] = new Vector3(j, perlinNoise, i);
+                vertices[index] = rotationOffset * new Vector3(j, perlinNoise, i);
                 index++;
             }
         }
         //creating plane mesh
-        for (int j = 0; j < height - 1; j++)
+        for (int i = 0; i < height - 1; i++)
         {
             //creating one row of quads
-            for (int i = 0; i < width - 1; i++)
+            for (int j = 0; j < width - 1; j++)
             {
-                vertex = j * height + i;
+                vertex = i * height + j;
 
                 //creating quads
                 //creating first triangle
@@ -156,9 +168,27 @@ public class TerrainGenerator : MonoBehaviour
                 offset += 6;
             }
         }
+        //Assign uvmap
+        int uvIndex = 0;
+        uvMap = new Vector2[vertices.Length];
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                uvMap[uvIndex] = new Vector2(i / (float)width, j / (float)height);
+                uvIndex++;
+            }
+        }
+
         Debug.Log($"Vertices: {vertices.Length} | Triangles: {indices.Length}");
     }
 
+    /// <summary>
+    /// Sets the perlin noise at a desired position
+    /// </summary>
+    /// <param name="_zPos">zPos where perlin is supposed to be applied</param>
+    /// <param name="_xPos">xPos where perlin is supposed to be applied</param>
+    /// <returns></returns>
     private float SetPerlinNoise(int _zPos, int _xPos)
     {
         return Mathf.PerlinNoise(_zPos * perlinOffset, _xPos * perlinOffset) * perlinMultiplier;
@@ -168,7 +198,12 @@ public class TerrainGenerator : MonoBehaviour
     {
         colormap = colorGenerator.UpdateColor(width, height);
         texture = colorGenerator.UpdateTexture(colormap, width, height);
-        rend.sharedMaterial.mainTexture = texture;
+    }
+
+    private void DrawDebugPlaneTexture()
+    {
+        Renderer planeRenderer = planeForTextureDebug.GetComponent<MeshRenderer>();
+        planeRenderer.sharedMaterial.mainTexture = texture;
     }
 
     private void UpdateMesh()
@@ -176,7 +211,12 @@ public class TerrainGenerator : MonoBehaviour
         mesh.Clear();
         mesh.vertices = vertices;
         mesh.triangles = indices;
+        
+        mesh.uv = uvMap;
 
+        meshFilter.sharedMesh = mesh;
+        rend.material = meshMaterial;
+        rend.sharedMaterial.mainTexture = texture;
         mesh.RecalculateNormals();
     }
 
