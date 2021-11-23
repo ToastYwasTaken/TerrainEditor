@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 /*****************************************************************************
 * Project: TerrainEditor
@@ -15,6 +13,7 @@ using UnityEngine;
 *
 * --Changelog:
 *	20.11.21	FM	created
+*	21.11.21    FM  added comments
 ******************************************************************************/
 public class ColorGenerator : MonoBehaviour
 {
@@ -27,53 +26,65 @@ public class ColorGenerator : MonoBehaviour
     [SerializeField]
     private float mountainLevel;
 
-    // Start is called before the first frame update
-    void Start()
+    /// <summary>
+    /// Creates a colormap according to heights of the different levels
+    /// -> Texture will be drawn depending on the height at an index
+    /// </summary>
+    /// <param name="_width">width of the desired colormap</param>
+    /// <param name="_height">height  of the desired colormap</param>
+    /// <returns>new colormap</returns>
+    public Color[] UpdateColor(int _width, int _height)
     {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    public Color[] UpdateColor(int width, int height)
-    {
-        Color[] colormap = new Color[width * height];
-        for (int i = 0; i < height; i++)
+        Color[] colormap = new Color[_width * _height];
+        for (int i = 0; i < _height; i++)
         {
-            for (int j = 0; j < width; j++)
+            for (int j = 0; j < _width; j++)
             {
-                if (terrainGenerator.AllNoise[width, height] >= waterLevel)
+                if (terrainGenerator.AllNoise[j, i] <= waterLevel)
                 {
                     //Set water
-                    colormap[i * height + j] = Color.blue;
+                    //Debug.Log("Setting color blue");
+                    colormap[i * _height + j] = Color.blue;
                 }
-                else if (terrainGenerator.AllNoise[width, height] >= grassLevel)
+                else if (terrainGenerator.AllNoise[j, i] <= grassLevel)
                 {
                     //Set grass
-                    colormap[i * height + j] = Color.green;
+                    //Debug.Log("Setting color green");
+                    colormap[i * _height + j] = Color.green;
                 }
-                else if (terrainGenerator.AllNoise[width, height] >= mountainLevel)
+                else if (terrainGenerator.AllNoise[j, i] <= mountainLevel)
                 {
                     //Set mountain
-                    colormap[i * height + j] = Color.grey;
+                    //Debug.Log("Setting color gray");
+                    colormap[i * _height + j] = Color.grey;
                 }
                 else
+                {
                     //Set mountainTop
-                    colormap[i * height + j] = Color.white;
+                    //Debug.Log("Setting color white");
+                    colormap[i * _height + j] = Color.white;
+                }
+                //Debug.Log($"Terrain Noise: {terrainGenerator.AllNoise[j, i]}");
+                //Debug.Log($"Colormap colors {colormap[i * _height + j]}: {colormap[i * _height + j]}");
             }
         }
         return colormap;
     }
 
+    /// <summary>
+    /// Creates a new texture of a given colormap
+    /// </summary>
+    /// <param name="_colormap">the colormap, calculated in UpdateColor()</param>
+    /// <param name="_width">width of colormap</param>
+    /// <param name="_height">height of colormap</param>
+    /// <returns>texture to apply on plane</returns>
     public Texture2D UpdateTexture(Color[] _colormap, int _width, int _height)
     {
         Texture2D newTexture = new Texture2D(_width, _height);
         newTexture.filterMode = FilterMode.Trilinear;
         newTexture.wrapMode = TextureWrapMode.Clamp;
+        newTexture.SetPixels(_colormap);
+        newTexture.Apply();
         return newTexture;
     }
 }
