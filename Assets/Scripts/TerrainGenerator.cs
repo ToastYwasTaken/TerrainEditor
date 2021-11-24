@@ -17,6 +17,7 @@ using UnityEngine;
 * ----------------------------
 *	20.11.21	created
 *	23.11.21    added comments
+*	24.11.21    Bug: only width = height supported (seems to be problem with colormap)
 ******************************************************************************/
 
 [ExecuteInEditMode]
@@ -38,7 +39,9 @@ public class TerrainGenerator : MonoBehaviour
     private float perlinMultiplier;
     [SerializeField]
     private GameObject planeForTextureDebug;
-
+    [Tooltip("Click here to apply changes when high height / width")]
+    [SerializeField]
+    private bool updateMesh;
     [SerializeField]
     ColorGenerator colorGenerator;
 
@@ -74,9 +77,18 @@ public class TerrainGenerator : MonoBehaviour
 
     private void Update()
     {
-        AssignMesh();
-        AssignColor();
-        UpdateMesh();
+        if (width*height < 500)
+        {
+            AssignMesh();
+            AssignColor();
+            UpdateMesh();
+        }else if (updateMesh)
+        {
+            AssignMesh();
+            AssignColor();
+            UpdateMesh();
+            updateMesh = false;
+        }
     }
 
     public IEnumerator CreateMeshProcedural()
@@ -131,7 +143,7 @@ public class TerrainGenerator : MonoBehaviour
         int index = 0;
         int offset = 0;
         int vertex = 0;
-        Quaternion rotationOffset = Quaternion.Euler(0, 90, 0);
+        Quaternion rotationOffset = Quaternion.Euler(0, 0, 0);
         indices = new int[(width - 1) * (height - 1) * 6];
         //Calculate vertices
         for (int i = 0; i < height; i++)
@@ -143,7 +155,7 @@ public class TerrainGenerator : MonoBehaviour
                     perlinNoise = SetPerlinNoise(j, i);
                     AllNoise[j, i] = perlinNoise;
                 }
-                vertices[index] = rotationOffset * new Vector3(j, perlinNoise, i);
+                vertices[index] = new Vector3(j, perlinNoise, i);
                 index++;
             }
         }
@@ -175,7 +187,7 @@ public class TerrainGenerator : MonoBehaviour
         {
             for (int j = 0; j < height; j++)
             {
-                uvMap[uvIndex] = new Vector2(i / (float)width, j / (float)height);
+                uvMap[uvIndex] = rotationOffset * (new Vector2(i / (float)width, j / (float)height));
                 uvIndex++;
             }
         }

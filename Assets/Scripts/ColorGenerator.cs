@@ -82,8 +82,8 @@ public class ColorGenerator : MonoBehaviour
     public Texture2D UpdateTexture(Color[] _colormap, int _width, int _height)
     {
         Texture2D newTexture = new Texture2D(_width, _height);
-        newTexture.filterMode = FilterMode.Trilinear;
-        newTexture.wrapMode = TextureWrapMode.Clamp;
+        newTexture.filterMode = FilterMode.Bilinear;
+        newTexture.wrapMode = TextureWrapMode.MirrorOnce;
         newTexture.SetPixels(_colormap);
         newTexture.Apply();
         return newTexture;
